@@ -7,8 +7,6 @@ m2 {background-color:rgb(190, 250, 151); color:rgb(8, 3, 24); font-weight: bold;
 m3 {background-color:rgb(250, 215, 151); color:rgb(58, 3, 33); font-weight: bold;}
 </style>
 
-</style>
-
 ## <m2>Kafka Hands-on - docker</m2>
 
 ### Important Concepts:
