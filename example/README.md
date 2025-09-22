@@ -25,6 +25,8 @@ Think of Kafka like a **message highway** where:
 ├── consumer.go            # Go message consumer
 ├── simple_producer.py     # Python message producer (recommended)
 ├── simple_consumer.py     # Python message consumer (recommended)
+├── consumer_1.py          # Python consumer with group-id: consumer-group-1
+├── consumer_2.py          # Python consumer with group-id: consumer-group-2
 ├── requirement.txt        # Python dependencies
 └── README.md             # This file
 ```
@@ -319,6 +321,72 @@ Once comfortable with basics, explore:
 3. **Monitoring**: Prometheus, Grafana integration
 4. **Production Setup**: Multi-broker clusters, security
 5. **Different Clients**: Try other language clients (Python, Java)
+
+## Message Retention and Consumer Groups
+
+### Understanding Message Persistence
+
+**Important**: Kafka messages are **NOT deleted after consumption**. They persist based on:
+- **Time-based retention**: Default 7 days (`log.retention.hours=168`)
+- **Size-based retention**: Default unlimited (`log.retention.bytes=-1`)
+
+### Consumer Group Behavior
+
+Each **consumer group** maintains its own **offset tracking**:
+- **Same group ID**: Consumers resume from last processed message
+- **Different group ID**: Consumers read all available messages (from earliest)
+
+### Testing Message Retention
+
+#### Test 1: Consumer Group Offset Persistence
+```bash
+# Terminal 1: Start producer
+python simple_producer.py
+
+# Terminal 2: Start consumer_1 and let it consume some messages
+python consumer_1.py
+# Press Ctrl+C after seeing several messages
+
+# Terminal 3: Restart the same consumer
+python consumer_1.py
+# OBSERVATION: Continues from where it left off (no duplicate messages)
+```
+
+**Expected Result**: Consumer resumes from the last committed offset, showing that:
+1. Messages persist in Kafka after consumption
+2. Consumer groups track their progress
+
+#### Test 2: Different Consumer Groups See All Messages  
+```bash
+# Terminal 1: Start producer (if not running)
+python simple_producer.py
+
+# Terminal 2: Start consumer_2 (different group ID)
+python consumer_2.py
+# OBSERVATION: Reads ALL messages from beginning, including those already consumed by consumer_1
+```
+
+**Expected Result**: Different consumer groups receive all messages independently.
+
+#### Test 3: Multiple Consumers in Same Group (Load Balancing)
+```bash
+# Terminal 1: Producer
+python simple_producer.py
+
+# Terminal 2: Consumer_1 instance A
+python consumer_1.py
+
+# Terminal 3: Consumer_1 instance B (same group)
+python consumer_1.py
+
+# OBSERVATION: Messages are distributed between the two consumers (load balancing)
+```
+
+### Key Takeaways
+- ✅ **Messages persist** until retention policy expires
+- ✅ **Consumer groups track offsets** independently  
+- ✅ **Same group = load balancing** (messages split between instances)
+- ✅ **Different groups = broadcast** (all groups receive all messages)
 
 ## Cleanup
 

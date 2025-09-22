@@ -41,8 +41,8 @@ func main() {
 	fmt.Println("Kafka Producer started. Press Ctrl+C to stop.")
 	fmt.Printf("Sending messages to topic: %s\n", topic)
 
-	// Create a ticker to send messages every 2 seconds
-	ticker := time.NewTicker(2 * time.Second)
+	// Create a ticker to send messages every 6 seconds
+	ticker := time.NewTicker(6 * time.Second)
 	defer ticker.Stop()
 
 	// Main loop

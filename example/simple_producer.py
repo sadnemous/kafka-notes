@@ -2,7 +2,7 @@
 """
 Simple Kafka Producer in Python using confluent-kafka
 
-This script sends messages to a Kafka topic every 2 seconds.
+This script sends messages to a Kafka topic every 6 seconds.
 Press Ctrl+C to stop gracefully.
 """
 
@@ -93,8 +93,8 @@ class SimpleKafkaProducer:
                 print(f"📤 Sending: {message}")
                 self.send_message(message, key)
                 
-                # Wait 2 seconds
-                time.sleep(2)
+                # Wait 6 seconds
+                time.sleep(6)
                 
         except KeyboardInterrupt:
             print("\n⚠️  Keyboard interrupt received")
