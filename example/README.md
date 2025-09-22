@@ -25,8 +25,6 @@ Think of Kafka like a **message highway** where:
 ├── consumer.go            # Go message consumer
 ├── simple_producer.py     # Python message producer (recommended)
 ├── simple_consumer.py     # Python message consumer (recommended)
-├── producer.py            # Advanced Python producer
-├── consumer.py            # Advanced Python consumer
 ├── requirement.txt        # Python dependencies
 └── README.md             # This file
 ```
