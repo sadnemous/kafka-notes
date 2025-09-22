@@ -72,7 +72,7 @@ source venv/bin/activate  # On Linux/Mac
 venv\Scripts\activate     # On Windows
 
 # Install Python dependencies
-pip install confluent-kafka==2.3.0
+pip install -r requirement.txt
 ```
 
 ### Step 3: Create Kafka Topic (Optional)
