@@ -27,6 +27,7 @@ Think of Kafka like a **message highway** where:
 ├── simple_consumer.py     # Python message consumer (recommended)
 ├── consumer_1.py          # Python consumer with group-id: consumer-group-1
 ├── consumer_2.py          # Python consumer with group-id: consumer-group-2
+├── multi_partition_producer.py # Producer demonstrating partition strategies
 ├── requirement.txt        # Python dependencies
 └── README.md             # This file
 ```
@@ -387,6 +388,110 @@ python consumer_1.py
 - ✅ **Consumer groups track offsets** independently  
 - ✅ **Same group = load balancing** (messages split between instances)
 - ✅ **Different groups = broadcast** (all groups receive all messages)
+
+## Working with Multiple Partitions
+
+### Understanding Partitions
+
+**Partitions** enable Kafka to scale horizontally and provide parallel processing:
+
+- **Scalability**: Multiple consumers can process different partitions simultaneously
+- **Ordering**: Messages within a partition maintain strict order
+- **Distribution**: Messages are distributed across partitions using different strategies
+
+### Partition Strategies
+
+#### 1. Round-Robin (No Key)
+```python
+# Messages distributed evenly across all partitions
+producer.produce(topic='my-topic', key=None, value='message')
+```
+
+#### 2. Key-Based Partitioning
+```python
+# Same key always goes to the same partition
+producer.produce(topic='my-topic', key='user-123', value='message')
+```
+
+#### 3. Specific Partition
+```python
+# Send to exact partition
+producer.produce(topic='my-topic', partition=1, value='message')
+```
+
+### Multi-Partition Demo
+
+The [`multi_partition_producer.py`](file:///home/soumen/Documents/porasuno/kafka/kafka-notes/example/multi_partition_producer.py) demonstrates all three strategies:
+
+```bash
+# Terminal 1: Start the multi-partition producer
+python multi_partition_producer.py
+
+# Terminal 2: Watch messages distributed across partitions
+python consumer_1.py
+```
+
+**Observations**:
+- **Round-robin**: Messages spread evenly (partition 0, 1, 2, 0, 1, 2...)
+- **Key-based**: Same user ID always goes to same partition
+- **Specific**: Messages go to designated partition
+
+### Creating Topics with Multiple Partitions
+
+#### Method 1: Manual Topic Creation
+```bash
+# Create topic with 3 partitions
+docker exec -it kafka kafka-topics --create --topic multi-partition-topic \
+  --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+
+# Check partition details
+docker exec -it kafka kafka-topics --describe --topic multi-partition-topic \
+  --bootstrap-server localhost:9092
+```
+
+#### Method 2: Auto-Creation (Updated docker-compose.yml)
+Topics are now auto-created with 3 partitions by default due to `KAFKA_NUM_PARTITIONS=3`.
+
+### Consumer Behavior with Partitions
+
+**Important**: Each consumer instance in a group gets assigned specific partitions:
+
+```bash
+# Terminal 1: Producer
+python multi_partition_producer.py
+
+# Terminal 2: Consumer 1 (gets some partitions)
+python consumer_1.py
+
+# Terminal 3: Consumer 2 (gets remaining partitions) 
+python consumer_1.py  # Same group = load balancing
+
+# Terminal 4: Different group (gets all partitions)
+python consumer_2.py  # Different group = all messages
+```
+
+### Partition Best Practices
+
+1. **Choose partition count wisely**: Start with 3-6 partitions per topic
+2. **Use meaningful keys**: Keys should distribute evenly (avoid hotspots)
+3. **Consider consumer count**: Max consumers per group = partition count
+4. **Monitor partition balance**: Check message distribution across partitions
+
+### Monitoring Partitions
+
+```bash
+# Check consumer group partition assignment
+docker exec -it kafka kafka-consumer-groups --bootstrap-server localhost:9092 \
+  --describe --group consumer-group-1
+
+# Check topic partition details
+docker exec -it kafka kafka-topics --describe --topic multi-partition-topic \
+  --bootstrap-server localhost:9092
+
+# Check partition offsets
+docker exec -it kafka kafka-run-class kafka.tools.GetOffsetShell \
+  --broker-list localhost:9092 --topic multi-partition-topic
+```
 
 ## Cleanup
 
